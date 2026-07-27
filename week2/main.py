@@ -10,7 +10,7 @@ def load_data(path):
   # 파일 경로를 인자로 받아 DataFrame을 반환합니다
   # 파일이 존재하지 않을 경우 안내 메시지를 출력하고 프로그램을 종료합니다
   # 불러오기 성공 시 "데이터 로드 완료: 행 수 × 열 수" 형태로 출력합니다
-  
+
   if os.path.exists(path):
     df = pd.read_csv(path, encoding='utf-8-sig')
     print(f"데이터 로드 완료: {df.shape[0]}행 x {df.shape[1]}열")
@@ -109,16 +109,128 @@ def numpy_amount_stats(df):
     
   return None
   
+  
+# Week2 기능 1 — 날짜 파싱 및 파생 컬럼 생성 (parse_dates)
+def parse_dates(df):
+  """문자열로 된 날짜를 datetime 타입으로 바꾸고, 연·월·일 컬럼을 추가합니다. 날짜가 datetime이어야 월별 집계나 정렬을 정확히 할 수 있습니다."""
+  # date 컬럼을 pd.to_datetime으로 변환합니다 (errors="coerce"로 변환 실패는 NaT 처리)
+  # 변환에 실패한 행이 몇 개인지 출력합니다
+  # year, month, day 파생 컬럼을 만듭니다
+
+  df_new = df.copy()
+  df_new['date'] = pd.to_datetime(df_new['date'], format="%Y-%m-%d", errors="coerce")
+  
+  print(df_new['date'].isna().sum())
+  
+  df_new['year'] = df_new['date'].dt.year
+  df_new['month'] = df_new['date'].dt.month
+  df_new['day'] = df_new['date'].dt.day
+  
+  print(df_new.head())
+  
+  return df_new
+
+# Week2 기능 2 — 카테고리 표준화 (standardize_category)
+def standardize_category(df):
+  """CSV를 직접 입력하다 보면 오탈자·공백 같은 표기 불일치가 생길 수 있습니다. 함수로 이를 정리합니다."""
+  # 앞뒤 공백을 제거합니다
+  # 허용 목록(식비/교통/쇼핑/의료/문화/기타)에 있으면 그대로 두고, 없으면 기타로 바꿉니다
+  # 문자열이 아니면 기타로 처리합니다
+  
+  def standardize(text):
+    standard_values = ['식비', '교통', '쇼핑', '의료', '문화', '기타']
+    
+    if isinstance(text, str):
+      text = text.strip()
+      if text not in standard_values:
+        text = '기타'
+    
+    else:
+      text = '기타'
+    
+    return text
+  
+  df_new = df.copy()
+  df_new['category'] = df_new['category'].apply(standardize)
+  
+  print(df_new['category'].value_counts())
+    
+  return df_new
+
+
+# Week2 기능 3 — 금액 구간 컬럼 생성 (add_amount_level)
+def add_amount_level(df):
+  """조건문으로 금액을 세 구간으로 나눈 amount_level 컬럼을 추가합니다."""
+  # 구간 기준:
+  # 소액 1만 원 미만
+  # 중액 1만 원 이상 ~ 5만 원 미만
+  # 고액 5만 원 이상
+  
+  def check_amount(num):
+    if num < 10000.0:
+      return '소액'
+    elif num < 50000.0:
+      return '중액'
+    else:
+      return '고액'
+  
+  df_new = df.copy()
+  df_new['amount_level'] = df_new['amount'].apply(check_amount) 
+  
+  return df_new
+
+
+# Week2 기능 4 — 결측·이상값 처리 (clean_values)
+def clean_values(df):
+  """메모 결측치를 채우고, 금액이 0 이하이거나 날짜 변환에 실패한 행을 제거합니다."""
+  # memo 결측치를 빈 문자열("")로 채웁니다
+  # 금액이 0 이하인 행을 제거합니다
+  # 날짜 변환에 실패한(NaT) 행을 제거합니다
+  # 제거 전/후 행 수를 출력합니다
+  
+  df_new = df.copy()
+  
+  df_new = df_new.fillna({"memo" : ""})
+  df_new = df_new[df_new["amount"] > 0.0]
+  df_new = df_new.dropna(subset=["date"])
+  df_new = df_new.reset_index(drop=True)
+  
+  print(df['memo'].isna().sum(), df_new['memo'].isna().sum())
+  print(len(df), len(df_new))
+  
+  return df_new
+
+
+# Week2 기능 5 — 간단 집계로 확인 (show_summary)
+def show_summary(df):
+  """정리된 데이터가 말이 되는지 월별·카테고리별 합계로 확인합니다. groupby로 간단히 계산합니다."""
+  # 월별 총 지출을 계산해 출력합니다
+  # 카테고리별 총 지출을 (많은 순으로) 출력합니다
+  
+  print(df.groupby("month")["amount"].sum())
+  print(df.groupby("category")["amount"].sum().sort_values(ascending=False))
+    
+  return None
 
 
 if __name__ == '__main__':
   print(pd.__version__)   # 예: 2.1.0
   print(np.__version__)   # 예: 1.26.0
-
-  data = load_data(DATA_PATH)
   
-  explore_structure(data)
-  show_distribution(data)
-  check_missing(data)
-  numpy_amount_stats(data)
+  data = load_data(DATA_PATH)
+
+  # week1
+  # explore_structure(data)
+  # show_distribution(data)
+  # check_missing(data)
+  # numpy_amount_stats(data)
+  
+  # week2
+  data = parse_dates(data)
+  data = standardize_category(data)
+  data = add_amount_level(data)
+  data = clean_values(data)
+  show_summary(data)
+  
+  data.to_csv('../data/spending_clean.csv', index=False, encoding='utf-8-sig')
   
