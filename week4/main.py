@@ -4,6 +4,7 @@ import sqlite3
 import os, sys
 
 DATA_PATH = '../data/spending.csv'
+CLEAN_DATA_PATH = '../data/spending_clean.csv'
 DB_PATH = '../data/spendings.db'
 
 # 기능 1 - 데이터 불러오기
@@ -382,11 +383,11 @@ if __name__ == '__main__':
   data = add_amount_level(data)
   data = clean_values(data)
   show_summary(data)
-  data.to_csv('../data/spending_clean.csv', index=False, encoding='utf-8-sig')
+  data.to_csv(CLEAN_DATA_PATH, index=False, encoding='utf-8-sig')
   
   # week3
-  clean_data = load_clean_data(DATA_PATH)
-  conn = init_db(DB_PATH)  
+  clean_data = load_clean_data(CLEAN_DATA_PATH)
+  conn = init_db(DB_PATH)
   save_to_db(clean_data, conn)  
   query_basic(conn)
   query_basic(conn, column = 'category, payment')  
