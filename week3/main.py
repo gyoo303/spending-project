@@ -1,6 +1,5 @@
 import os, sys
 import sqlite3
-import sqlalchemy
 import pandas as pd
 
 DATA_PATH = '../data/spending_clean.csv'
@@ -20,7 +19,7 @@ def load_clean_data(path):
     sys.exit(1)
 
 
-# 기능 1 — DB 연결 + 테이블 생성 (init_db)
+# Week3 기능 1 — DB 연결 + 테이블 생성 (init_db)
 def init_db(path):
   """SQLite 데이터베이스에 연결하고, 지출 데이터를 담을 테이블을 만듭니다."""
   # data/ 폴더가 없으면 만들고, sqlite3.connect로 DB에 연결합니다 (파일이 없으면 자동 생성)
@@ -61,7 +60,7 @@ def init_db(path):
   return conn
 
 
-# 기능 2 — 정제 데이터 저장 (save_to_db)
+# Week3 기능 2 — 정제 데이터 저장 (save_to_db)
 def save_to_db(df, conn):
   """과제 2 정제본을 불러와 spendings 테이블에 저장합니다."""
   # pandas의 to_sql로 DataFrame을 테이블에 저장합니다
@@ -78,7 +77,7 @@ def save_to_db(df, conn):
   return None
 
 
-# 기능 3 — 기본 조회 (SELECT)
+# Week3 기능 3 — 기본 조회 (SELECT)
 def query_basic(conn, column = None):
   """pd.read_sql로 테이블 데이터를 조회합니다."""
   # 전체에서 상위 5행을 조회합니다
@@ -92,7 +91,7 @@ def query_basic(conn, column = None):
   
   return None
 
-# 기능 4 — 조건 조회 (WHERE + ORDER BY)
+# Week3 기능 4 — 조건 조회 (WHERE + ORDER BY)
 def query_conditional(conn, condition = ""):
   """WHERE로 조건을 걸고 ORDER BY로 정렬해 원하는 데이터만 조회합니다."""
   # 특정 카테고리(예: 식비)를 금액 높은 순으로 조회합니다
@@ -103,7 +102,7 @@ def query_conditional(conn, condition = ""):
   
   return None
   
-# 기능 5 — 집계 조회 (GROUP BY)
+# Week3 기능 5 — 집계 조회 (GROUP BY)
 def query_groupby(conn):
   "GROUP BY로 카테고리별·월별 지출을 집계합니다."
   # 카테고리별 건수·총지출·평균·최대 금액을 조회합니다 (총지출 내림차순)
@@ -127,7 +126,7 @@ def query_groupby(conn):
   
   return sql_groupby_result
   
-# 기능 6 — Python vs SQL 검증 + main() 연결
+# Week3 기능 6 — Python vs SQL 검증 + main() 연결
 def verify_sql_to_df(df, conn):
   """Python으로 계산한 집계와 SQL 집계가 같은지 확인하고, 전체를 main()에서 연결합니다."""
   # Python(groupby)으로 카테고리별 총지출을 계산합니다
